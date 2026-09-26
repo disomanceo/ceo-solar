@@ -112,7 +112,7 @@ function earthClouds(){
         const radius=r*(1-t),x=cx+Math.cos(angle)*radius*1.7,y=cy+Math.sin(angle)*radius*.75;
         if(step===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
       }
-      ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=5;ctx.shadowColor='white';ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
+      ctx.strokeStyle='rgba(255,255,255,.10)';ctx.lineWidth=7;ctx.shadowColor='white';ctx.shadowBlur=16;ctx.stroke();ctx.shadowBlur=0;
     }
     ctx.fillStyle='rgba(220,239,255,.34)';ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
   }

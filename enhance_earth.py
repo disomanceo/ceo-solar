@@ -10,6 +10,6 @@ for y in range(source.height):
         r,g,b=pixels[x,y]
         # The NASA base map's dark, blue ocean pixels retain geography and coastlines.
         if b>r*1.12 and b>g*1.04 and r<135 and g<145:
-            pixels[x,y]=(min(255,int(r*.82+12)),min(255,int(g*1.16+20)),min(255,int(b*1.25+30)))
+            pixels[x,y]=(min(255,int(r*.72+12)),min(255,int(g*1.4+35)),min(255,int(b*1.65+50)))
 source.save('dist/earth-blue-marble.jpg',quality=89,optimize=True)
 print(source.size)
