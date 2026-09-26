@@ -27,3 +27,8 @@ npm run build
 
 พื้นผิวโลกใช้ภาพ [NASA Blue Marble: Next Generation, January](https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/) ย่อขนาดเพื่อใช้บนเว็บ ดาวเทียมในฉากเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่ดาวเทียมดวงจริง
 
+
+## รายชื่อดวงจันทร์บริวาร
+
+ไฟล์ src/moons.json เป็นข้อมูลจาก [NASA/JPL Planetary Satellite Discovery Circumstances](https://ssd.jpl.nasa.gov/sats/discovery.html) ตรวจเมื่อ 26 กันยายน 2569 รวมดวงจันทร์ของโลกและพลูโต บางดวงยังใช้รหัสชั่วคราว รายชื่อเต็มแสดงบนเว็บ ส่วนฉาก 3 มิติแสดงดวงจันทร์เด่นด้วยขนาดและระยะจำลอง
+
