@@ -22,3 +22,8 @@ npm run build
 ## เผยแพร่บน Cloudflare Pages
 
 ตั้งค่า Build command เป็น `npm run build` และ Build output directory เป็น `dist` หรืออัปโหลดไฟล์ใน `dist` ด้วย Direct Upload
+
+## แหล่งภาพโลก
+
+พื้นผิวโลกใช้ภาพ [NASA Blue Marble: Next Generation, January](https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/) ย่อขนาดเพื่อใช้บนเว็บ ดาวเทียมในฉากเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่ดาวเทียมดวงจริง
+
