@@ -69,7 +69,7 @@ function texture(index,b){const c=document.createElement('canvas');c.width=512;c
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
 const objects=[],pickables=[];
 bodies.forEach((b,i)=>{const pivot=new THREE.Group();scene.add(pivot);const holder=new THREE.Group();holder.position.x=b.orbit;pivot.add(holder);
-  const material=i===0?new THREE.MeshBasicMaterial({map:texture(i,b),color:0xffbd72}):new THREE.MeshStandardMaterial({map:texture(i,b),roughness:1,metalness:0});
+  const material=i===0?new THREE.MeshBasicMaterial({map:texture(i,b),color:0xffbd72}):i===3?new THREE.MeshBasicMaterial({map:texture(i,b)}):new THREE.MeshStandardMaterial({map:texture(i,b),roughness:1,metalness:0});
   const mesh=new THREE.Mesh(new THREE.SphereGeometry(b.radius,i===3?64:32,i===3?48:24),material);holder.add(mesh);mesh.userData.index=i;pickables.push(mesh);
   // Illuminate the sun directly without a rectangular billboard.
   if(i===0){material.color.setHex(0xffd484)}
@@ -90,7 +90,36 @@ const moonModels=featuredMoonModels.map(([parent,name,distance,radius,color,spee
 const solarMembers=scene.children.filter(o=>o!==sunLight&&o.type!=='AmbientLight');
 const topicTargets=objects.map(o=>o.holder);
 const earth=objects[3].holder;
-new THREE.TextureLoader().load('./earth-blue-marble.jpg',map=>{map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=renderer.capabilities.getMaxAnisotropy();objects[3].mesh.material.map=map;objects[3].mesh.material.emissiveMap=map;objects[3].mesh.material.emissive.setHex(0xffffff);objects[3].mesh.material.emissiveIntensity=.42;objects[3].mesh.material.needsUpdate=true},undefined,()=>console.warn('Earth map unavailable; using fallback texture'));
+new THREE.TextureLoader().load('./earth-blue-marble.jpg',map=>{map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=renderer.capabilities.getMaxAnisotropy();objects[3].mesh.material.map=map;objects[3].mesh.material.needsUpdate=true},undefined,()=>console.warn('Earth map unavailable; using fallback texture'));
+function earthClouds(){
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=512;
+  const ctx=canvas.getContext('2d');
+  // Soft cloud bands and a few spiral storm systems, drawn on a transparent globe.
+  for(let i=0;i<145;i++){
+    const x=rand(i*7+41)*1024,y=90+rand(i*11+13)*330;
+    const width=18+rand(i*19+3)*100,height=3+rand(i*31+9)*13;
+    const alpha=.025+rand(i*43+7)*.1;
+    ctx.save();ctx.translate(x,y);ctx.rotate((rand(i*17+5)-.5)*.7);
+    const glow=ctx.createRadialGradient(0,0,0,0,0,width);
+    glow.addColorStop(0,`rgba(255,255,255,${alpha})`);glow.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.scale(1,height/width);ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,width,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  for(const [cx,cy,r,seed] of [[230,177,45,1],[680,264,53,2],[830,160,37,3],[450,325,34,4]]){
+    for(let arm=0;arm<3;arm++){
+      ctx.beginPath();
+      for(let step=0;step<70;step++){
+        const t=step/69,angle=arm*Math.PI*2/3+t*Math.PI*2.4+seed;
+        const radius=r*(1-t),x=cx+Math.cos(angle)*radius*1.7,y=cy+Math.sin(angle)*radius*.75;
+        if(step===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=5;ctx.shadowColor='white';ctx.shadowBlur=9;ctx.stroke();ctx.shadowBlur=0;
+    }
+    ctx.fillStyle='rgba(220,239,255,.34)';ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
+  }
+  const cloudTexture=new THREE.CanvasTexture(canvas);cloudTexture.colorSpace=THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.SphereGeometry(.794,64,48),new THREE.MeshBasicMaterial({map:cloudTexture,transparent:true,depthWrite:false,side:THREE.DoubleSide,opacity:.9}));
+}
+const cloudShell=earthClouds();earth.add(cloudShell);
 topicTargets.push(earth.userData.moon);
 const rocks=[];for(let i=0;i<650;i++){const a=rand(i+909)*Math.PI*2,r=18.3+rand(i+1909)*2.4;rocks.push(Math.cos(a)*r,(rand(i+2909)-.5)*.45,Math.sin(a)*r)}
 const beltGeo=new THREE.BufferGeometry();beltGeo.setAttribute('position',new THREE.Float32BufferAttribute(rocks,3));const belt=new THREE.Points(beltGeo,new THREE.PointsMaterial({color:0xa9a8a0,size:.13,sizeAttenuation:true}));scene.add(belt);solarMembers.push(belt);
@@ -119,4 +148,4 @@ const moonKeys=['Mercury','Venus','Earth','Mars','Jupiter','Saturn','Uranus','Ne
 function renderMoonCatalog(){const query=$('moonSearch').value.trim().toLocaleLowerCase(),container=$('moonCatalogList');container.replaceChildren();let matches=0;for(const key of moonKeys){const all=moonCatalog.bodies[key],planet=moonPlanetLabels[key],planetMatch=planet.toLocaleLowerCase().includes(query)||key.toLowerCase().includes(query);const found=query&&!planetMatch?all.filter(m=>[m.name,moonThai[m.name]||''].some(t=>t.toLocaleLowerCase().includes(query))):all;if(query&&!planetMatch&&!found.length)continue;matches+=found.length;const detail=document.createElement('details');detail.className='moon-group';detail.open=!!query||key==='Earth'||key==='Mars';const summary=document.createElement('summary');summary.textContent=planet+' — '+all.length+' ดวง'+(query&&found.length!==all.length?' (ตรงคำค้น '+found.length+')':'');detail.append(summary);if(!all.length){const empty=document.createElement('p');empty.textContent='ไม่มีดวงจันทร์บริวารที่รู้จัก';detail.append(empty)}else{const list=document.createElement('ol');list.className='moon-names';for(const moon of found){const item=document.createElement('li');item.textContent=moonThai[moon.name]?moonThai[moon.name]+' ('+moon.name+')':moon.name;if(!moon.named)item.title='ยังไม่มีชื่อสามัญ ใช้รหัสชั่วคราว';list.append(item)}detail.append(list)}container.append(detail)}$('moonMatchCount').textContent=query?'พบ '+matches+' รายการ':'รวม '+moonKeys.reduce((total,key)=>total+moonCatalog.bodies[key].length,0)+' ดวง (รวมพลูโต)'}
 $('moonSearch').addEventListener('input',renderMoonCatalog);renderMoonCatalog();
 const answers=['ดาวอังคาร','โลก','ดาวเสาร์'];answers.forEach((answer,i)=>{let button=document.createElement('button');button.textContent=answer;button.onclick=()=>$('feedback').textContent=i===1?'ถูกต้อง! โลกเป็นบ้านของเรา 🌍':'ลองอีกครั้ง มองหาดาวเคราะห์ลำดับที่ 3';$('answers').append(button)});
-const clock=new THREE.Clock();function render(){renderer.render(scene,camera);updateLabels()}function animate(){requestAnimationFrame(animate);const delta=Math.min(clock.getDelta(),.05);if(running){objects.forEach((o,i)=>{if(i>0)o.pivot.rotation.y+=delta*.21*12/o.b.period;o.mesh.rotation.y+=delta*(i===0?.12:.4)});earth.userData.moonOrbit.rotation.y+=delta*.24;earth.userData.satelliteOrbit.rotation.y+=delta*.75;moonModels.forEach(m=>m.orbit.rotation.y+=delta*m.speed);disk.rotation.z+=delta*.08}if(follow){const newTarget=topicTargets[selected].getWorldPosition(new THREE.Vector3());camera.position.add(newTarget.clone().sub(controls.target));controls.target.copy(newTarget)}controls.update();render()}choose(0);animate();
+const clock=new THREE.Clock();function render(){renderer.render(scene,camera);updateLabels()}function animate(){requestAnimationFrame(animate);const delta=Math.min(clock.getDelta(),.05);if(running){objects.forEach((o,i)=>{if(i>0)o.pivot.rotation.y+=delta*.21*12/o.b.period;o.mesh.rotation.y+=delta*(i===0?.12:.4)});cloudShell.rotation.y+=delta*.43;earth.userData.moonOrbit.rotation.y+=delta*.24;earth.userData.satelliteOrbit.rotation.y+=delta*.75;moonModels.forEach(m=>m.orbit.rotation.y+=delta*m.speed);disk.rotation.z+=delta*.08}if(follow){const newTarget=topicTargets[selected].getWorldPosition(new THREE.Vector3());camera.position.add(newTarget.clone().sub(controls.target));controls.target.copy(newTarget)}controls.update();render()}choose(0);animate();
